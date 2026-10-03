@@ -1,0 +1,666 @@
+--// K5-HUB
+--// Draggable + Resizable + Minimize to Logo + Auto Redeem ON/OFF
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local CodeRE = ReplicatedStorage.Framework.Systems.CodesSystem.CodeRE
+
+--==================================================
+-- CONFIG
+--==================================================
+
+local CODE_COOLDOWN = 8.6
+local BUFFER = 8.5
+local REDEEM_DELAY = CODE_COOLDOWN + BUFFER
+
+--==================================================
+-- CODES
+--==================================================
+
+local Codes = {
+    "RAGNAROK",
+    "Rujika",
+    "Aimyoungs",
+    "GRAYWOLF",
+    "Astral",
+    "Ahjughh",
+    "AAM",
+    "ARES",
+    "ARKANGHEL",
+    "ERIKSM",
+    "reiley",
+    "BERLINHERE23",
+    "Giovanni_GG",
+    "CA2",
+    "SIGURIH",
+    "MERGIXS",
+    "druscxlla",
+    "MAHAFEY",
+    "ToadPlaysGamesTTV",
+    "luknojo",
+    "Ghifa",
+    "Luthador2121",
+    "RIKUSOULS",
+    "T3nsei",
+    "Dray28",
+    "Sukunay",
+    "Maple",
+    "LALAGANG",
+    "Uzi",
+    "runekify",
+    "Zeny",
+    "HELOS",
+    "LezoCr",
+    "Fujiesane",
+    "Laplace",
+    "Nyxaria",
+    "FannTzy",
+    "Deco",
+    "dasher",
+    "Nothing",
+    "ProfGab",
+    "SUB2BLAZESTARS",
+    "Dism",
+    "SUPER MBUD",
+    "Marcell",
+    "DrekathSenpai",
+    "Darkfeniks",
+    "Sneptuno",
+    "Markbhatra",
+    "LZZ_019BEST",
+    "Bebek",
+    "NisardHelpOnlyWoman",
+    "TT_oratttt",
+    "Izumi_Senpai",
+    "Les",
+    "SEYUnever",
+    "Shan",
+    "Freca",
+    "Ryokenn",
+    "ReyPomuchi",
+    "Gryffin",
+    "DEI_Yumeko",
+    "Chrisss",
+    "tony_vt",
+    "Ryu",
+    "Clipz7112",
+    "PaPaX",
+    "Kiota2",
+    "Lulzsec",
+    "smiley",
+    "Sine",
+    "GT_HANNI",
+    "Erijero",
+    "DanoNano",
+    "WettySNK",
+    "obe",
+    "Dekday",
+    "Qyuu",
+    "Gwynne",
+    "PapiJoy",
+    "Taalonely",
+    "Darren",
+    "MADUNN",
+    "PepCalcot",
+    "Shirooo0312_IRONSOUL",
+    "Monarch",
+    "Lifauzi",
+    "TT_Mentally_ill_K.N",
+    "RaykorBR",
+    "ZARGAKSTONE",
+    "Heso",
+    "Ghelayyy",
+    "EJ(YURU)",
+    "IronReaper",
+    "Skywinter86",
+    "ALLWAONIRONSOUL",
+    "IRONWEEKENDGIFT26",
+    "Locko_SS",
+    "MAS ACENG",
+    "IRONTRADETYCOON"
+}
+
+--==================================================
+-- STATE
+--==================================================
+
+local AutoRedeem = false
+local Redeeming = false
+local Minimized = false
+
+local CurrentIndex = 0
+local Redeemed = 0
+
+--==================================================
+-- COLORS
+--==================================================
+
+local BG = Color3.fromRGB(18, 12, 28)
+local PANEL = Color3.fromRGB(28, 19, 42)
+local PURPLE = Color3.fromRGB(150, 70, 255)
+local PURPLE_DARK = Color3.fromRGB(95, 40, 170)
+local WHITE = Color3.fromRGB(245, 245, 255)
+local GRAY = Color3.fromRGB(165, 155, 180)
+local GREEN = Color3.fromRGB(70, 220, 120)
+local RED = Color3.fromRGB(240, 70, 90)
+
+--==================================================
+-- SCREEN GUI
+--==================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "K5_HUB"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = PlayerGui
+
+--==================================================
+-- MAIN WINDOW
+--==================================================
+
+local Main = Instance.new("Frame")
+Main.Name = "K5_HUB_Window"
+Main.Size = UDim2.fromOffset(390, 500)
+Main.Position = UDim2.new(0.5, -195, 0.5, -250)
+Main.BackgroundColor3 = BG
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
+Main.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = PURPLE
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.25
+MainStroke.Parent = Main
+
+--==================================================
+-- HEADER
+--==================================================
+
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 58)
+Header.BackgroundColor3 = PANEL
+Header.BorderSizePixel = 0
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 16)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.fromOffset(18, 7)
+Title.Size = UDim2.new(1, -115, 0, 25)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "K5-HUB"
+Title.TextColor3 = WHITE
+Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.BackgroundTransparency = 1
+Subtitle.Position = UDim2.fromOffset(19, 31)
+Subtitle.Size = UDim2.new(1, -120, 0, 18)
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.Text = "Premium Code Redeemer"
+Subtitle.TextColor3 = GRAY
+Subtitle.TextSize = 11
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = Header
+
+--==================================================
+-- X BUTTON
+--==================================================
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "Close"
+CloseButton.Size = UDim2.fromOffset(38, 38)
+CloseButton.Position = UDim2.new(1, -46, 0, 10)
+CloseButton.BackgroundColor3 = Color3.fromRGB(55, 30, 65)
+CloseButton.BorderSizePixel = 0
+CloseButton.Text = "X"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 16
+CloseButton.TextColor3 = WHITE
+CloseButton.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 10)
+CloseCorner.Parent = CloseButton
+
+--==================================================
+-- CONTENT
+--==================================================
+
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Position = UDim2.fromOffset(12, 70)
+Content.Size = UDim2.new(1, -24, 1, -82)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
+
+--==================================================
+-- STATUS PANEL
+--==================================================
+
+local StatusPanel = Instance.new("Frame")
+StatusPanel.Size = UDim2.new(1, 0, 0, 100)
+StatusPanel.BackgroundColor3 = PANEL
+StatusPanel.BorderSizePixel = 0
+StatusPanel.Parent = Content
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 12)
+StatusCorner.Parent = StatusPanel
+
+local StatusTitle = Instance.new("TextLabel")
+StatusTitle.BackgroundTransparency = 1
+StatusTitle.Position = UDim2.fromOffset(14, 10)
+StatusTitle.Size = UDim2.new(1, -28, 0, 20)
+StatusTitle.Font = Enum.Font.GothamBold
+StatusTitle.Text = "AUTO REDEEM"
+StatusTitle.TextColor3 = WHITE
+StatusTitle.TextSize = 14
+StatusTitle.TextXAlignment = Enum.TextXAlignment.Left
+StatusTitle.Parent = StatusPanel
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.fromOffset(14, 38)
+StatusLabel.Size = UDim2.new(1, -140, 0, 20)
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.Text = "Status: OFF"
+StatusLabel.TextColor3 = RED
+StatusLabel.TextSize = 12
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = StatusPanel
+
+local ProgressLabel = Instance.new("TextLabel")
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Position = UDim2.fromOffset(14, 63)
+ProgressLabel.Size = UDim2.new(1, -28, 0, 20)
+ProgressLabel.Font = Enum.Font.Gotham
+ProgressLabel.Text = "Progress: 0/" .. #Codes
+ProgressLabel.TextColor3 = GRAY
+ProgressLabel.TextSize = 11
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+ProgressLabel.Parent = StatusPanel
+
+--==================================================
+-- AUTO REDEEM BUTTON
+--==================================================
+
+local Toggle = Instance.new("TextButton")
+Toggle.Name = "AutoRedeemToggle"
+Toggle.Size = UDim2.fromOffset(105, 40)
+Toggle.Position = UDim2.new(1, -117, 0, 30)
+Toggle.BackgroundColor3 = RED
+Toggle.BorderSizePixel = 0
+Toggle.Text = "OFF"
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 13
+Toggle.TextColor3 = WHITE
+Toggle.Parent = StatusPanel
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 10)
+ToggleCorner.Parent = Toggle
+
+--==================================================
+-- CODE LIST
+--==================================================
+
+local ListPanel = Instance.new("Frame")
+ListPanel.Position = UDim2.fromOffset(0, 112)
+ListPanel.Size = UDim2.new(1, 0, 1, -112)
+ListPanel.BackgroundColor3 = PANEL
+ListPanel.BorderSizePixel = 0
+ListPanel.Parent = Content
+
+local ListCorner = Instance.new("UICorner")
+ListCorner.CornerRadius = UDim.new(0, 12)
+ListCorner.Parent = ListPanel
+
+local ListTitle = Instance.new("TextLabel")
+ListTitle.BackgroundTransparency = 1
+ListTitle.Position = UDim2.fromOffset(14, 8)
+ListTitle.Size = UDim2.new(1, -28, 0, 25)
+ListTitle.Font = Enum.Font.GothamBold
+ListTitle.Text = "CODE LIST"
+ListTitle.TextColor3 = WHITE
+ListTitle.TextSize = 13
+ListTitle.TextXAlignment = Enum.TextXAlignment.Left
+ListTitle.Parent = ListPanel
+
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Position = UDim2.fromOffset(8, 38)
+Scroll.Size = UDim2.new(1, -16, 1, -46)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel = 0
+Scroll.ScrollBarThickness = 4
+Scroll.ScrollBarImageColor3 = PURPLE
+Scroll.CanvasSize = UDim2.new()
+Scroll.Parent = ListPanel
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 5)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Parent = Scroll
+
+for i, code in ipairs(Codes) do
+    local Item = Instance.new("TextLabel")
+    Item.Size = UDim2.new(1, -5, 0, 30)
+    Item.BackgroundColor3 = BG
+    Item.BorderSizePixel = 0
+    Item.Font = Enum.Font.Gotham
+    Item.Text = string.format("%03d  %s", i, code)
+    Item.TextColor3 = WHITE
+    Item.TextSize = 11
+    Item.TextXAlignment = Enum.TextXAlignment.Left
+    Item.LayoutOrder = i
+    Item.Parent = Scroll
+
+    local ItemCorner = Instance.new("UICorner")
+    ItemCorner.CornerRadius = UDim.new(0, 7)
+    ItemCorner.Parent = Item
+end
+
+Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Scroll.CanvasSize = UDim2.fromOffset(
+        0,
+        Layout.AbsoluteContentSize.Y + 10
+    )
+end)
+
+--==================================================
+-- DRAG SYSTEM
+--==================================================
+
+local Dragging = false
+local DragStart
+local StartPosition
+
+Header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = Main.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if Dragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+
+        local Delta = input.Position - DragStart
+
+        Main.Position = UDim2.new(
+            StartPosition.X.Scale,
+            StartPosition.X.Offset + Delta.X,
+            StartPosition.Y.Scale,
+            StartPosition.Y.Offset + Delta.Y
+        )
+    end
+end)
+
+--==================================================
+-- RESIZE HANDLE
+--==================================================
+
+local Resize = Instance.new("TextButton")
+Resize.Name = "Resize"
+Resize.Size = UDim2.fromOffset(24, 24)
+Resize.Position = UDim2.new(1, -26, 1, -26)
+Resize.BackgroundTransparency = 1
+Resize.Text = "↘"
+Resize.TextColor3 = PURPLE
+Resize.Font = Enum.Font.GothamBold
+Resize.TextSize = 18
+Resize.Parent = Main
+
+local Resizing = false
+local ResizeStart
+local StartSize
+
+Resize.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        Resizing = true
+        ResizeStart = input.Position
+        StartSize = Main.AbsoluteSize
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Resizing = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if Resizing and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+
+        local Delta = input.Position - ResizeStart
+
+        local NewWidth = math.clamp(
+            StartSize.X + Delta.X,
+            300,
+            600
+        )
+
+        local NewHeight = math.clamp(
+            StartSize.Y + Delta.Y,
+            350,
+            700
+        )
+
+        Main.Size = UDim2.fromOffset(
+            NewWidth,
+            NewHeight
+        )
+    end
+end)
+
+--==================================================
+-- LOGO
+--==================================================
+
+local Logo = Instance.new("TextButton")
+Logo.Name = "K5_Logo"
+Logo.Size = UDim2.fromOffset(65, 65)
+Logo.Position = Main.Position
+Logo.BackgroundColor3 = BG
+Logo.BorderSizePixel = 0
+Logo.Text = "K5"
+Logo.TextColor3 = WHITE
+Logo.TextSize = 20
+Logo.Font = Enum.Font.GothamBold
+Logo.Visible = false
+Logo.Parent = ScreenGui
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(1, 0)
+LogoCorner.Parent = Logo
+
+local LogoStroke = Instance.new("UIStroke")
+LogoStroke.Color = PURPLE
+LogoStroke.Thickness = 2
+LogoStroke.Parent = Logo
+
+--==================================================
+-- MINIMIZE / RESTORE
+--==================================================
+
+CloseButton.MouseButton1Click:Connect(function()
+    Minimized = true
+
+    Logo.Position = UDim2.new(
+        Main.Position.X.Scale,
+        Main.Position.X.Offset,
+        Main.Position.Y.Scale,
+        Main.Position.Y.Offset
+    )
+
+    Main.Visible = false
+    Logo.Visible = true
+end)
+
+Logo.MouseButton1Click:Connect(function()
+    Minimized = false
+    Logo.Visible = false
+    Main.Visible = true
+end)
+
+--==================================================
+-- UPDATE UI
+--==================================================
+
+local function UpdateUI()
+    if AutoRedeem then
+        Toggle.Text = "ON"
+        Toggle.BackgroundColor3 = GREEN
+        StatusLabel.Text = "Status: ON"
+        StatusLabel.TextColor3 = GREEN
+    else
+        Toggle.Text = "OFF"
+        Toggle.BackgroundColor3 = RED
+        StatusLabel.Text = "Status: OFF"
+        StatusLabel.TextColor3 = RED
+    end
+
+    ProgressLabel.Text =
+        string.format(
+            "Progress: %d/%d",
+            Redeemed,
+            #Codes
+        )
+end
+
+--==================================================
+-- AUTO REDEEM
+--==================================================
+
+local function StartAutoRedeem()
+
+    if Redeeming then
+        return
+    end
+
+    Redeeming = true
+
+    task.spawn(function()
+
+        while AutoRedeem do
+
+            CurrentIndex = nil
+
+            -- Cari kode berikutnya yang belum diproses
+            for i = 1, #Codes do
+                if not Codes[i]._done then
+                    CurrentIndex = i
+                    break
+                end
+            end
+
+            if not CurrentIndex then
+                break
+            end
+
+            local code = Codes[CurrentIndex]
+
+            print(string.format(
+                "[K5-HUB] [%d/%d] %s",
+                CurrentIndex,
+                #Codes,
+                code
+            ))
+
+            local success = pcall(function()
+                CodeRE:FireServer({
+                    event = "usecode",
+                    code = code
+                })
+            end)
+
+            if success then
+                Codes[CurrentIndex] = code
+                Redeemed += 1
+
+                print(
+                    "[K5-HUB] Sent: " .. tostring(code)
+                )
+            else
+                warn(
+                    "[K5-HUB] Failed: " .. tostring(code)
+                )
+            end
+
+            UpdateUI()
+
+            if AutoRedeem then
+                task.wait(REDEEM_DELAY)
+            end
+        end
+
+        Redeeming = false
+
+        if not AutoRedeem then
+            print("[K5-HUB] Auto Redeem OFF")
+        else
+            print("[K5-HUB] Auto Redeem Finished")
+        end
+
+        UpdateUI()
+    end)
+end
+
+--==================================================
+-- TOGGLE
+--==================================================
+
+Toggle.MouseButton1Click:Connect(function()
+
+    AutoRedeem = not AutoRedeem
+
+    UpdateUI()
+
+    if AutoRedeem then
+        StartAutoRedeem()
+    end
+end)
+
+--==================================================
+-- INITIALIZE
+--==================================================
+
+UpdateUI()
+
+print("================================")
+print("          K5-HUB LOADED")
+print("       Auto Redeem Ready")
+print("================================")
